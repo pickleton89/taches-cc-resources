@@ -1,23 +1,8 @@
 ---
-description: DEPRECATED - Use create-plans skill instead for project planning
+description: Create a new prompt that another Claude can execute
 argument-hint: [task description]
 allowed-tools: [Read, Write, Glob, SlashCommand, AskUserQuestion]
 ---
-
-<deprecation_notice>
-**This command is deprecated.**
-
-**Use instead:**
-- For building projects: `Skill("create-plans")` - Full lifecycle planning with domain expertise
-- For abstract workflows: `Skill("deprecated-create-meta-prompts")` - Research/analysis workflows
-
-**Why deprecated:**
-- No structure or lifecycle management
-- No domain awareness
-- create-plans provides better workflow with git versioning, context handoffs, and domain-specific guidance
-
-This command remains for backward compatibility but is no longer recommended.
-</deprecation_notice>
 
 <context>
 Before generating prompts, use the Glob tool to check `./prompts/*.md` to:

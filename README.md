@@ -201,20 +201,15 @@ Deep analysis debugging mode for complex issues. Activates methodical investigat
 
 Commands: `/debug`
 
-## Deprecated
+---
 
-These tools have been superseded by the create-plans skill and are no longer recommended for new workflows.
+## Recommended Workflow
 
-### Commands
+**For building projects:** Use the [create-plans](#create-plans) skill as your primary workflow. It provides hierarchical planning (BRIEF.md → ROADMAP.md → phases/PLAN.md), domain-aware task generation, context management with handoffs, and git versioning.
 
-- [`/create-prompt`](./commands/deprecated-create-prompt.md) - DEPRECATED. Use `Skill("create-plans")` for project planning instead
-- [`/run-prompt`](./commands/deprecated-run-prompt.md) - DEPRECATED. Use `Skill("create-plans")` execution workflow instead
+**For domain expertise:** Use [create-agent-skills](#create-agent-skills) to create exhaustive knowledge bases in `~/.claude/skills/expertise/`. These skills are automatically loaded by create-plans to make task specifications framework-specific instead of generic.
 
-### Skills
-
-- [`create-meta-prompts`](./skills/deprecated-create-meta-prompts/) - DEPRECATED for project building. Use `Skill("create-plans")` for projects. Keep for abstract Claude→Claude pipelines only
-
-**Why deprecated:** create-plans evolved from the meta-prompting pattern with hierarchical structure (BRIEF.md → ROADMAP.md → phases), domain expertise loading from ~/.claude/skills/build/, context management, handoffs, and git versioning. It provides the full lifecycle: plan → execute → ship → iterate.
+**Other tools:** The [create-meta-prompts](#create-meta-prompts-1) skill and `/create-prompt` + `/run-prompt` commands are available for custom Claude→Claude pipelines that don't fit the project planning structure.
 
 ---
 

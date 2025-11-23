@@ -54,90 +54,42 @@ Keep markdown formatting within content (bold, lists, code blocks).
 SKILL.md under 500 lines. Split detailed content into reference files. Load only what's needed for the current workflow.
 </essential_principles>
 
-<context_scan>
-**Run on every invocation to understand current state:**
-
-```bash
-# Are we in a skill directory?
-if [ -f "SKILL.md" ]; then
-    SKILL_NAME=$(grep "^name:" SKILL.md 2>/dev/null | cut -d: -f2 | xargs)
-    echo "IN_SKILL: $SKILL_NAME"
-
-    # What structure exists?
-    [ -d "workflows" ] && echo "HAS: workflows/"
-    [ -d "references" ] && echo "HAS: references/"
-    [ -d "templates" ] && echo "HAS: templates/"
-    [ -d "scripts" ] && echo "HAS: scripts/"
-
-    # Router or simple?
-    grep -q "<intake>" SKILL.md && echo "PATTERN: router" || echo "PATTERN: simple"
-else
-    echo "NOT_IN_SKILL"
-fi
-
-# Show available expertise skills
-echo "EXPERTISE_SKILLS:"
-ls ~/.claude/skills/expertise/ 2>/dev/null | head -5
-```
-
-**Present findings before intake question.**
-</context_scan>
-
 <intake>
-**If IN skill directory:**
-```
-Working in: {skill-name} ({pattern})
-Components: {what exists}
-
 What would you like to do?
-1. Add component (workflow/reference/template/script)
-2. Audit this skill
-3. Verify content is current
-4. Upgrade to router pattern
-5. Create different skill
-6. Get guidance
-```
 
-**If NOT in skill directory:**
-```
-What would you like to do?
 1. Create new skill
 2. Audit/modify existing skill
-3. Get guidance
-```
+3. Add component (workflow/reference/template/script)
+4. Get guidance
 
 **Wait for response before proceeding.**
 </intake>
 
 <routing>
-**When IN skill directory:**
-
-| Response | Next Action | Workflow |
-|----------|-------------|----------|
-| 1, "add", "component" | Ask: "Add what? (workflow/reference/template/script)" | workflows/add-{type}.md |
-| 2, "audit", "check", "review" | Audit current directory | workflows/audit-skill.md |
-| 3, "verify", "fresh", "current" | Verify current directory | workflows/verify-skill.md |
-| 4, "upgrade", "router", "restructure" | Upgrade current directory | workflows/upgrade-to-router.md |
-| 5, "create", "new", "different" | Exit directory, route to create flow | workflows/create-new-skill.md OR create-domain-expertise-skill.md |
-| 6, "guidance", "help" | General guidance | workflows/get-guidance.md |
-
-**When NOT in skill directory:**
-
 | Response | Next Action | Workflow |
 |----------|-------------|----------|
 | 1, "create", "new", "build" | Ask: "Task-execution skill or domain expertise skill?" | Route to appropriate create workflow |
 | 2, "audit", "modify", "existing" | Ask: "Path to skill?" | Route to appropriate workflow |
-| 3, "guidance", "help" | General guidance | workflows/get-guidance.md |
+| 3, "add", "component" | Ask: "Add what? (workflow/reference/template/script)" | workflows/add-{type}.md |
+| 4, "guidance", "help" | General guidance | workflows/get-guidance.md |
 
 **Progressive disclosure for option 1 (create):**
 - If user selects "Task-execution skill" → workflows/create-new-skill.md
 - If user selects "Domain expertise skill" → workflows/create-domain-expertise-skill.md
 
-**Progressive disclosure for add component:**
+**Progressive disclosure for option 3 (add component):**
 - If user specifies workflow → workflows/add-workflow.md
 - If user specifies reference → workflows/add-reference.md
 - If user specifies template → workflows/add-template.md
 - If user specifies script → workflows/add-script.md
+
+**Intent-based routing (if user provides clear intent without selecting menu):**
+- "audit this skill", "check skill", "review" → workflows/audit-skill.md
+- "verify content", "check if current" → workflows/verify-skill.md
+- "create domain expertise", "exhaustive knowledge base" → workflows/create-domain-expertise-skill.md
+- "create skill for X", "build new skill" → workflows/create-new-skill.md
+- "add workflow", "add reference", etc. → workflows/add-{type}.md
+- "upgrade to router" → workflows/upgrade-to-router.md
 
 **After reading the workflow, follow it exactly.**
 </routing>
@@ -230,13 +182,11 @@ Name conventions: `create-*`, `manage-*`, `setup-*`, `generate-*`, `build-*`
 
 <success_criteria>
 A well-structured skill:
-- Context scan runs on every invocation
-- Presents context-aware options (different if in skill directory)
 - Has valid YAML frontmatter
 - Uses pure XML structure (no markdown headings in body)
 - Has essential principles inline in SKILL.md
-- Routes to focused workflows
+- Routes directly to appropriate workflows based on user intent
 - Keeps SKILL.md under 500 lines
-- Uses progressive disclosure (max 6 options, then follow-up questions)
+- Asks minimal clarifying questions only when truly needed
 - Has been tested with real usage
 </success_criteria>

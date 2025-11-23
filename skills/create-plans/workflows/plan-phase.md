@@ -4,8 +4,15 @@
 **Read these files NOW:**
 1. templates/phase-prompt.md
 2. references/plan-format.md
-3. Read `.planning/ROADMAP.md`
-4. Read `.planning/BRIEF.md`
+3. references/scope-estimation.md
+4. references/checkpoints.md
+5. Read `.planning/ROADMAP.md`
+6. Read `.planning/BRIEF.md`
+
+**If domain expertise should be loaded (determined by intake):**
+7. Read domain SKILL.md: `~/.claude/skills/expertise/[domain]/SKILL.md`
+8. Determine phase type from ROADMAP (UI, database, API, etc.)
+9. Read ONLY relevant references from domain's `<references_index>` section
 </required_reading>
 
 <purpose>
@@ -58,28 +65,87 @@ cat package.json 2>/dev/null | head -20
 </step>
 
 <step name="break_into_tasks">
-Decompose the phase into 5-10 tasks.
+Decompose the phase into tasks.
 
 Each task must have:
+- **Type**: auto, checkpoint:human-action, checkpoint:human-verify, checkpoint:decision
 - **Task name**: Clear, action-oriented
-- **Files**: Which files created/modified
+- **Files**: Which files created/modified (for auto tasks)
 - **Action**: Specific implementation (including what to avoid and WHY)
 - **Verify**: How to prove it worked
 - **Done**: Acceptance criteria
+
+**Identify checkpoints:**
+- External resources to create? → checkpoint:human-action
+- UI/UX to verify visually? → checkpoint:human-verify
+- Implementation choices to make? → checkpoint:decision
+
+See references/checkpoints.md for checkpoint structure.
+</step>
+
+<step name="estimate_scope">
+After breaking into tasks, assess scope:
+
+**Signals to split into multiple plans:**
+- >7 tasks total
+- Multiple subsystems (DB + API + UI)
+- Multiple checkpoints (>2)
+- Research + implementation mix
+- Expected file count >15
+
+**If scope is appropriate (3-6 tasks, single subsystem):**
+Proceed to confirm_breakdown for a single plan.
+
+**If scope is large:**
+Split into multiple plans by:
+- Subsystem (01-01: Database, 01-02: API, 01-03: UI)
+- Dependency (01-01: Setup + checkpoints, 01-02: Core, 01-03: Features)
+- Complexity (01-01: Layout shell, 01-02: Data viz, 01-03: User actions)
+
+Each plan should be 3-6 tasks, ~80% context usage maximum.
+
+See references/scope-estimation.md for splitting guidance.
 </step>
 
 <step name="confirm_breakdown">
-Present the task breakdown inline:
+Present the breakdown inline:
 
-"Here's the proposed breakdown for Phase [X]:
+**If single plan (3-6 tasks):**
+```
+Here's the proposed breakdown for Phase [X]:
 
-### Tasks
-1. [Task name] - [brief description]
-2. [Task name] - [brief description]
-3. [Task name] - [brief description]
+### Tasks (single plan: {phase}-01-PLAN.md)
+1. [Task name] - [brief description] [type: auto/checkpoint]
+2. [Task name] - [brief description] [type: auto/checkpoint]
+3. [Task name] - [brief description] [type: auto/checkpoint]
 ...
 
-Does this breakdown look right? (yes / adjust / start over)"
+Does this breakdown look right? (yes / adjust / start over)
+```
+
+**If multiple plans (>7 tasks or multiple subsystems):**
+```
+Here's the proposed breakdown for Phase [X]:
+
+This phase requires 3 plans to maintain quality:
+
+### Plan 1: {phase}-01-PLAN.md - [Subsystem/Component Name]
+1. [Task name] - [brief description] [type]
+2. [Task name] - [brief description] [type]
+3. [Task name] - [brief description] [type]
+
+### Plan 2: {phase}-02-PLAN.md - [Subsystem/Component Name]
+1. [Task name] - [brief description] [type]
+2. [Task name] - [brief description] [type]
+
+### Plan 3: {phase}-03-PLAN.md - [Subsystem/Component Name]
+1. [Task name] - [brief description] [type]
+2. [Task name] - [brief description] [type]
+
+Each plan is independently executable and scoped to ~80% context.
+
+Does this breakdown look right? (yes / adjust / start over)
+```
 
 Wait for confirmation before proceeding.
 
@@ -118,57 +184,98 @@ Loop until "Create phase prompt" selected.
 <step name="write_phase_prompt">
 Use template from `templates/phase-prompt.md`.
 
-Write to `.planning/phases/XX-name/PLAN.md`:
+**If single plan:**
+Write to `.planning/phases/XX-name/{phase}-01-PLAN.md`
+
+**If multiple plans:**
+Write multiple files:
+- `.planning/phases/XX-name/{phase}-01-PLAN.md`
+- `.planning/phases/XX-name/{phase}-02-PLAN.md`
+- `.planning/phases/XX-name/{phase}-03-PLAN.md`
+
+Each file follows the template structure:
 
 ```markdown
 ---
 phase: XX-name
+plan: {plan-number}
 type: execute
 domain: [if domain expertise loaded]
 ---
 
 <objective>
-[Phase goal from roadmap]
+[Plan-specific goal - what this plan accomplishes]
 
-Purpose: [Why this matters]
-Output: [What will be created]
+Purpose: [Why this plan matters for the phase]
+Output: [What artifacts will be created by this plan]
 </objective>
+
+<execution_context>
+@~/.claude/skills/create-plans/workflows/execute-phase.md
+@~/.claude/skills/create-plans/templates/summary.md
+[If plan has ANY checkpoint tasks (type="checkpoint:*"), add:]
+@~/.claude/skills/create-plans/references/checkpoints.md
+</execution_context>
 
 <context>
 @.planning/BRIEF.md
 @.planning/ROADMAP.md
 [If research done:]
 @.planning/phases/XX-name/FINDINGS.md
+[If continuing from previous plan:]
+@.planning/phases/XX-name/{phase}-{prev}-SUMMARY.md
 [Relevant source files:]
 @src/path/to/relevant.ts
 </context>
 
 <tasks>
-[Tasks with Files/Action/Verify/Done]
+[Tasks in XML format with type attribute]
+[Mix of type="auto" and type="checkpoint:*" as needed]
 </tasks>
 
 <verification>
-[Overall phase verification checks]
+[Overall plan verification checks]
 </verification>
 
 <success_criteria>
-[Measurable completion criteria]
+[Measurable completion criteria for this plan]
 </success_criteria>
 
 <output>
-After completion, create `.planning/phases/XX-name/SUMMARY.md`
+After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 [Include summary structure from template]
 </output>
 ```
+
+**For multi-plan phases:**
+- Each plan has focused scope (3-6 tasks)
+- Plans reference previous plan summaries in context
+- Last plan's success criteria includes "Phase X complete"
 </step>
 
 <step name="offer_next">
+**If single plan:**
 ```
-Phase prompt created: .planning/phases/XX-name/PLAN.md
+Phase plan created: .planning/phases/XX-name/{phase}-01-PLAN.md
 [X] tasks defined.
 
 What's next?
-1. Execute phase
+1. Execute plan
+2. Review/adjust tasks
+3. Done for now
+```
+
+**If multiple plans:**
+```
+Phase plans created:
+- {phase}-01-PLAN.md ([X] tasks) - [Subsystem name]
+- {phase}-02-PLAN.md ([X] tasks) - [Subsystem name]
+- {phase}-03-PLAN.md ([X] tasks) - [Subsystem name]
+
+Total: [X] tasks across [Y] focused plans.
+
+What's next?
+1. Execute first plan ({phase}-01)
 2. Review/adjust tasks
 3. Done for now
 ```
@@ -201,12 +308,14 @@ Tasks are instructions for Claude, not Jira tickets.
 </anti_patterns>
 
 <success_criteria>
-Phase prompt is complete when:
-- [ ] PLAN.md exists with XML structure
-- [ ] Objective, context, tasks, verification, success criteria, output all present
+Phase planning is complete when:
+- [ ] One or more PLAN files exist with XML structure ({phase}-{plan}-PLAN.md)
+- [ ] Each plan has: Objective, context, tasks, verification, success criteria, output
 - [ ] @context references included
-- [ ] 5-10 tasks defined
-- [ ] Each task has: Files, Action, Verify, Done
+- [ ] Each plan has 3-6 tasks (scoped to ~80% context)
+- [ ] Each task has: Type, Files (if auto), Action, Verify, Done
+- [ ] Checkpoints identified and properly structured
 - [ ] Tasks are specific enough for Claude to execute
+- [ ] If multiple plans: logical split by subsystem/dependency/complexity
 - [ ] User knows next steps
 </success_criteria>

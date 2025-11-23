@@ -1,23 +1,8 @@
 ---
-description: DEPRECATED - Use create-plans skill instead for project execution
-argument-hint: [task description]
-allowed-tools: [Read, Write, Glob, SlashCommand, AskUserQuestion]
+name: run-prompt
+description: Delegate one or more prompts to fresh sub-task contexts with parallel or sequential execution
+argument-hint: <prompt-number(s)-or-name> [--parallel|--sequential]
 ---
-
-<deprecation_notice>
-**This command is deprecated.**
-
-**Use instead:**
-- For project execution: `Skill("create-plans")` - Full lifecycle planning with PLAN.md execution
-- For abstract workflows: `Skill("deprecated-create-meta-prompts")` - Research/analysis workflows
-
-**Why deprecated:**
-- create-plans provides better lifecycle management (Brief → Roadmap → Research → PLAN.md → Execute → SUMMARY.md)
-- Direct execution with verification and handoff support
-- No separate execution step needed
-
-This command remains for backward compatibility but is no longer recommended.
-</deprecation_notice>
 
 <objective>
 Execute one or more prompts from `./prompts/` as delegated sub-tasks with fresh context. Supports single prompt execution, parallel execution of multiple independent prompts, and sequential execution of dependent prompts.

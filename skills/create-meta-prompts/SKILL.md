@@ -1,29 +1,7 @@
 ---
-name: deprecated-create-meta-prompts
-description: DEPRECATED - Use create-plans for project building. Create optimized prompts for Claude-to-Claude pipelines with research, planning, and execution stages. Use only for abstract workflows, not project planning.
+name: create-meta-prompts
+description: Create optimized prompts for Claude-to-Claude pipelines with research, planning, and execution stages. Use when building prompts that produce outputs for other prompts to consume, or when running multi-stage workflows (research -> plan -> implement).
 ---
-
-<deprecation_notice>
-**This skill is deprecated for most use cases.**
-
-**Use instead:**
-- For building projects: `Skill("create-plans")` - Full lifecycle planning with domain expertise, phase structure, execution, and handoffs
-- For abstract workflows: Keep using this skill for Claude→Claude pipelines that don't fit project structure
-
-**Why deprecated:**
-- create-plans evolved from this approach with better lifecycle management
-- Hierarchical structure (BRIEF.md → ROADMAP.md → phases/*/PLAN.md)
-- Domain-aware planning loads framework-specific expertise from ~/.claude/skills/expertise/
-- Context management with automatic handoffs at token limits
-- Git versioning commits outcomes, not process
-
-**When to still use this skill:**
-- Abstract research → analysis workflows that don't build projects
-- Custom Claude→Claude pipelines with specific dependency patterns
-- One-off automation tasks that don't fit project planning structure
-
-This skill remains for abstract workflows but is no longer recommended for project planning.
-</deprecation_notice>
 
 <objective>
 Create prompts optimized for Claude-to-Claude communication in multi-stage workflows. Outputs are structured with XML and metadata for efficient parsing by subsequent prompts.

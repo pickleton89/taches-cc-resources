@@ -16,7 +16,7 @@ PLAN.md is not a document that gets transformed into a prompt.
 PLAN.md IS the prompt. It contains:
 - Objective (what and why)
 - Context (@file references)
-- Tasks (Files, Action, Verify, Done)
+- Tasks (type, files, action, verify, done, checkpoints)
 - Verification (overall checks)
 - Success criteria (measurable)
 - Output (SUMMARY.md specification)
@@ -24,9 +24,83 @@ PLAN.md IS the prompt. It contains:
 When planning a phase, you are writing the prompt that will execute it.
 </principle>
 
+<principle name="scope_control">
+Plans should complete within ~80% of context usage maximum.
+
+Beyond 80%, Claude begins optimizing for completion over quality. Late tasks get rushed, compressed, or skipped.
+
+**Solution:** Split large phases into multiple focused plans using `{phase}-{plan}-PLAN.md` naming.
+
+Examples:
+- `01-01-PLAN.md` - Phase 1, Plan 1 (database setup)
+- `01-02-PLAN.md` - Phase 1, Plan 2 (API routes)
+- `01-03-PLAN.md` - Phase 1, Plan 3 (UI components)
+
+Each plan is independently executable, verifiable, and scoped to 3-6 tasks.
+
+See: references/scope-estimation.md
+</principle>
+
+<principle name="human_checkpoints">
+Some tasks require human involvement. Checkpoints formalize these interaction points.
+
+**Checkpoint types:**
+- `checkpoint:human-action` - Human creates external resource (Upstash DB, API keys)
+- `checkpoint:human-verify` - Human verifies Claude's work (UI, UX, visual checks)
+- `checkpoint:decision` - Human makes implementation choice (auth provider, architecture)
+
+All checkpoints are `gate="blocking"` - execution stops until human responds.
+
+**Protocol:** Claude reaches checkpoint → stops → presents clear instructions → waits → verifies → resumes
+
+See: references/checkpoints.md
+</principle>
+
+<principle name="deviation_rules">
+Plans are guides, not straitjackets. Real development always involves discoveries.
+
+**During execution, deviations are handled automatically via 5 embedded rules:**
+
+1. **Auto-fix bugs** - Broken behavior → fix immediately, document in Summary
+2. **Auto-add missing critical** - Security/correctness gaps → add immediately, document
+3. **Auto-fix blockers** - Can't proceed → fix immediately, document
+4. **Ask about architectural** - Major structural changes → stop and ask user
+5. **Log enhancements** - Nice-to-haves → auto-log to ISSUES.md, continue
+
+**No user intervention needed for Rules 1-3, 5.** Only Rule 4 (architectural) requires user decision.
+
+**All deviations documented in Summary** with: what was found, what rule applied, what was done, commit hash.
+
+**Result:** Flow never breaks. Bugs get fixed. Scope stays controlled. Complete transparency.
+
+See: workflows/execute-phase.md (deviation_rules section)
+</principle>
+
 <principle name="ship_fast_iterate_fast">
 No enterprise process. No approval gates. No multi-week timelines.
 Plan → Execute → Ship → Learn → Repeat.
+
+**Milestone-driven:** Ship v1.0 → mark milestone → plan v1.1 → ship → repeat.
+Milestones mark shipped versions and enable continuous iteration.
+</principle>
+
+<principle name="milestone_boundaries">
+Milestones mark shipped versions (v1.0, v1.1, v2.0).
+
+**Purpose:**
+- Historical record in MILESTONES.md (what shipped when)
+- Greenfield → Brownfield transition marker
+- Git tags for releases
+- Clear completion rituals
+
+**Default approach:** Extend existing roadmap with new phases.
+- v1.0 ships (phases 1-4) → add phases 5-6 for v1.1
+- Continuous phase numbering (01-99)
+- Milestone groupings keep roadmap organized
+
+**Archive ONLY for:** Separate codebases or complete rewrites (rare).
+
+See: references/milestone-management.md
 </principle>
 
 <principle name="anti_enterprise_patterns">
@@ -116,7 +190,7 @@ Before creating roadmap or phase plans, determine if domain expertise should be 
 ls ~/.claude/skills/expertise/ 2>/dev/null
 ```
 
-This reveals available domain expertise (e.g., macos-apps, iphone-apps, unity-games, next-js-apps).
+This reveals available domain expertise (e.g., macos-apps, iphone-apps, unity-games, nextjs-ecommerce).
 
 **If no domain skills found:** Proceed without domain expertise (graceful degradation). The skill works fine without domain-specific context.
 </scan_domains>
@@ -129,8 +203,9 @@ If user's request contains domain keywords, INFER the domain:
 | "macOS", "Mac app", "menu bar", "AppKit", "SwiftUI desktop" | expertise/macos-apps |
 | "iPhone", "iOS", "iPad", "mobile app", "SwiftUI mobile" | expertise/iphone-apps |
 | "Unity", "game", "C#", "3D game", "2D game" | expertise/unity-games |
-| "MIDI", "audio app", "music app", "DAW", "sequencer" | expertise/swift-midi-apps |
+| "MIDI", "MIDI tool", "sequencer", "MIDI controller", "music app", "MIDI 2.0", "MPE", "SysEx" | expertise/midi |
 | "Agent SDK", "Claude SDK", "agentic app" | expertise/with-agent-sdk |
+| "Python automation", "workflow", "API integration", "webhooks", "Celery", "Airflow", "Prefect" | expertise/python-workflow-automation |
 
 If domain inferred, confirm:
 ```
@@ -161,16 +236,49 @@ Select:
 </no_inference>
 
 <load_domain>
-When domain selected, READ all references from that skill:
+When domain selected, use intelligent loading:
 
+**Step 1: Read domain SKILL.md**
 ```bash
-cat ~/.claude/skills/expertise/[domain]/references/*.md 2>/dev/null
+cat ~/.claude/skills/expertise/[domain]/SKILL.md 2>/dev/null
 ```
 
-This loads domain patterns, conventions, commands into context BEFORE planning.
-Announce: "Loaded [domain] expertise. Planning with [framework] context."
+This loads core principles and routing guidance (~5k tokens).
+
+**Step 2: Determine what references are needed**
+
+Domain SKILL.md should contain a `<references_index>` section that maps planning contexts to specific references.
+
+Example:
+```markdown
+<references_index>
+**For database/persistence phases:** references/core-data.md, references/swift-concurrency.md
+**For UI/layout phases:** references/swiftui-layout.md, references/appleHIG.md
+**For system integration:** references/appkit-integration.md
+**Always useful:** references/swift-conventions.md
+</references_index>
+```
+
+**Step 3: Load only relevant references**
+
+Based on the phase being planned (from ROADMAP), load ONLY the references mentioned for that type of work.
+
+```bash
+# Example: Planning a database phase
+cat ~/.claude/skills/expertise/macos-apps/references/core-data.md
+cat ~/.claude/skills/expertise/macos-apps/references/swift-conventions.md
+```
+
+**Context efficiency:**
+- SKILL.md only: ~5k tokens
+- SKILL.md + selective references: ~8-12k tokens
+- All references (old approach): ~20-27k tokens
+
+Announce: "Loaded [domain] expertise ([X] references for [phase-type])."
 
 **If domain skill not found:** Inform user and offer to proceed without domain expertise.
+
+**If SKILL.md doesn't have references_index:** Fall back to loading all references with warning about context usage.
 </load_domain>
 
 <when_to_load>
@@ -234,12 +342,15 @@ What would you like to do?
 | "roadmap", "phases", 2 (no structure) | `workflows/create-roadmap.md` |
 | "phase", "plan phase", "next phase", 1 (has structure) | `workflows/plan-phase.md` |
 | "chunk", "next tasks", "what's next" | `workflows/plan-chunk.md` |
-| "execute", "run", "do it", "build it", 2 (has structure) | `workflows/execute-phase.md` |
+| "execute", "run", "do it", "build it", 2 (has structure) | **EXIT SKILL** → Use `/run-plan <path>` slash command |
 | "research", "investigate", "unknowns" | `workflows/research-phase.md` |
 | "handoff", "pack up", "stopping", 3 (has structure) | `workflows/handoff.md` |
 | "resume", "continue", 1 (has handoff) | `workflows/resume.md` |
 | "transition", "complete", "done", "next" | `workflows/transition.md` |
+| "milestone", "ship", "v1.0", "release" | `workflows/complete-milestone.md` |
 | "guidance", "help", 4 | `workflows/get-guidance.md` |
+
+**Critical:** Plan execution should NOT invoke this skill. Use `/run-plan` for context efficiency (skill loads ~20k tokens, /run-plan loads ~5-7k).
 
 **After reading the workflow, follow it exactly.**
 </routing>
@@ -278,17 +389,25 @@ All planning artifacts go in `.planning/`:
 ├── ROADMAP.md                  # Phase structure + tracking
 └── phases/
     ├── 01-foundation/
-    │   ├── PLAN.md             # THE PROMPT (execute this)
-    │   ├── SUMMARY.md          # Outcome (exists = done)
-    │   └── .continue-here.md   # Handoff (temporary)
+    │   ├── 01-01-PLAN.md       # Plan 1: Database setup
+    │   ├── 01-01-SUMMARY.md    # Outcome (exists = done)
+    │   ├── 01-02-PLAN.md       # Plan 2: API routes
+    │   ├── 01-02-SUMMARY.md
+    │   ├── 01-03-PLAN.md       # Plan 3: UI components
+    │   └── .continue-here-01-03.md  # Handoff (temporary, if needed)
     └── 02-auth/
-        ├── RESEARCH.md         # Research prompt (if needed)
-        ├── FINDINGS.md         # Research output
-        ├── PLAN.md             # Execute prompt
-        └── SUMMARY.md
+        ├── 02-01-RESEARCH.md   # Research prompt (if needed)
+        ├── 02-01-FINDINGS.md   # Research output
+        ├── 02-02-PLAN.md       # Implementation prompt
+        └── 02-02-SUMMARY.md
 ```
 
-Phase folders use `XX-name` format for ordering.
+**Naming convention:**
+- Plans: `{phase}-{plan}-PLAN.md` (e.g., 01-03-PLAN.md)
+- Summaries: `{phase}-{plan}-SUMMARY.md` (e.g., 01-03-SUMMARY.md)
+- Phase folders: `{phase}-{name}/` (e.g., 01-foundation/)
+
+Files sort chronologically. Related artifacts (plan + summary) are adjacent.
 </output_structure>
 
 <reference_index>
@@ -297,6 +416,9 @@ All in `references/`:
 **Structure:** directory-structure.md, hierarchy-rules.md
 **Formats:** handoff-format.md, plan-format.md
 **Patterns:** context-scanning.md, context-management.md
+**Planning:** scope-estimation.md, checkpoints.md, milestone-management.md
+**Process:** user-gates.md, git-integration.md, research-pitfalls.md
+**Domain:** domain-expertise.md (guide for creating context-efficient domain skills)
 </reference_index>
 
 <templates_index>
@@ -304,11 +426,13 @@ All in `templates/`:
 
 | Template | Purpose |
 |----------|---------|
-| brief.md | Project vision document |
-| roadmap.md | Phase structure with tracking |
+| brief.md | Project vision document with current state |
+| roadmap.md | Phase structure with milestone groupings |
 | phase-prompt.md | Executable phase prompt (PLAN.md) |
 | research-prompt.md | Research prompt (RESEARCH.md) |
-| summary.md | Phase outcome (SUMMARY.md) |
+| summary.md | Phase outcome (SUMMARY.md) with deviations |
+| milestone.md | Milestone entry for MILESTONES.md |
+| issues.md | Deferred enhancements log (ISSUES.md) |
 | continue-here.md | Context handoff format |
 </templates_index>
 
@@ -324,6 +448,7 @@ All in `workflows/`:
 | research-phase.md | Create and run research prompt |
 | plan-chunk.md | Plan immediate next tasks |
 | transition.md | Mark phase complete, advance |
+| complete-milestone.md | Mark shipped version, create milestone entry |
 | handoff.md | Create context handoff for pausing |
 | resume.md | Load handoff, restore context |
 | get-guidance.md | Help decide planning approach |
@@ -337,4 +462,8 @@ Planning skill succeeds when:
 - Hierarchy is maintained (brief → roadmap → phase)
 - Handoffs preserve full context for resumption
 - Context limits are respected (auto-handoff at 10%)
+- Deviations handled automatically per embedded rules
+- All work (planned and discovered) fully documented
+- Domain expertise loaded intelligently (SKILL.md + selective references, not all files)
+- Plan execution uses /run-plan command (not skill invocation)
 </success_criteria>

@@ -1,6 +1,8 @@
 # Phase Prompt Template
 
-Copy and fill this structure for `.planning/phases/XX-name/PLAN.md`:
+Copy and fill this structure for `.planning/phases/XX-name/{phase}-{plan}-PLAN.md`:
+
+**Naming:** Use `{phase}-{plan}-PLAN.md` format (e.g., `01-02-PLAN.md` for Phase 1, Plan 2)
 
 ```markdown
 ---
@@ -16,6 +18,13 @@ Purpose: [Why this matters for the project]
 Output: [What artifacts will be created]
 </objective>
 
+<execution_context>
+@~/.claude/skills/create-plans/workflows/execute-phase.md
+@~/.claude/skills/create-plans/templates/summary.md
+[If plan contains checkpoint tasks (type="checkpoint:*"), add:]
+@~/.claude/skills/create-plans/references/checkpoints.md
+</execution_context>
+
 <context>
 @.planning/BRIEF.md
 @.planning/ROADMAP.md
@@ -27,21 +36,45 @@ Output: [What artifacts will be created]
 
 <tasks>
 
-### Task 1: [Action-oriented name]
+<task type="auto">
+  <name>Task 1: [Action-oriented name]</name>
+  <files>path/to/file.ext, another/file.ext</files>
+  <action>[Specific implementation - what to do, how to do it, what to avoid and WHY]</action>
+  <verify>[Command or check to prove it worked]</verify>
+  <done>[Measurable acceptance criteria]</done>
+</task>
 
-**Files**: `path/to/file.ext`, `another/file.ext`
-**Action**: [Specific implementation - what to do, how to do it, what to avoid and WHY]
-**Verify**: [Command or check to prove it worked]
-**Done**: [Measurable acceptance criteria]
+<task type="checkpoint:human-action" gate="blocking">
+  <action>[What human must do externally]</action>
+  <instructions>
+    1. [Specific step with exact URL/command]
+    2. [Next step]
+    3. [Final step - where to save result]
+  </instructions>
+  <verification>[What Claude can check afterward - file exists, env var set]</verification>
+  <resume-signal>[How user indicates completion - "done", "paste URL", etc.]</resume-signal>
+</task>
 
-### Task 2: [Action-oriented name]
+<task type="auto">
+  <name>Task 3: [Action-oriented name]</name>
+  <files>path/to/file.ext</files>
+  <action>[Specific implementation]</action>
+  <verify>[Command or check]</verify>
+  <done>[Acceptance criteria]</done>
+</task>
 
-**Files**: `path/to/file.ext`
-**Action**: [Specific implementation]
-**Verify**: [Command or check]
-**Done**: [Acceptance criteria]
+<task type="checkpoint:human-verify" gate="blocking">
+  <what-built>[What Claude just built that needs verification]</what-built>
+  <how-to-verify>
+    1. Run: [command to start dev server/app]
+    2. Visit: [URL to check]
+    3. Test: [Specific interactions]
+    4. Confirm: [Expected behaviors]
+  </how-to-verify>
+  <resume-signal>Type "approved" to continue, or describe issues to fix</resume-signal>
+</task>
 
-[Continue for all tasks...]
+[Continue for all tasks - mix of auto and checkpoints as needed...]
 
 </tasks>
 
@@ -60,9 +93,9 @@ Before declaring phase complete:
 </success_criteria>
 
 <output>
-After completion, create `.planning/phases/XX-name/SUMMARY.md`:
+After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`:
 
-# Phase [X]: [Name] Summary
+# Phase [X] Plan [Y]: [Name] Summary
 
 **[Substantive one-liner - what shipped, not "phase complete"]**
 
@@ -80,8 +113,9 @@ After completion, create `.planning/phases/XX-name/SUMMARY.md`:
 ## Issues Encountered
 [Problems and resolutions, or "None"]
 
-## Next Phase Readiness
-[What's ready for next phase, any blockers]
+## Next Step
+[If more plans in this phase: "Ready for {phase}-{next-plan}-PLAN.md"]
+[If phase complete: "Phase complete, ready for next phase"]
 </output>
 ```
 
@@ -89,10 +123,17 @@ After completion, create `.planning/phases/XX-name/SUMMARY.md`:
 From create-meta-prompts patterns:
 - XML structure for Claude parsing
 - @context references for file loading
+- Task types: auto, checkpoint:human-action, checkpoint:human-verify, checkpoint:decision
 - Action includes "what to avoid and WHY" (from intelligence-rules)
 - Verification is specific and executable
 - Success criteria is measurable
 - Output specification includes SUMMARY.md structure
+
+**Scope guidance:**
+- Aim for 3-6 tasks per plan
+- If planning >7 tasks, split into multiple plans (01-01, 01-02, etc.)
+- Target ~80% context usage maximum
+- See references/scope-estimation.md for splitting guidance
 </key_elements>
 
 <good_examples>
@@ -110,6 +151,11 @@ Purpose: Establish the core structure and auth patterns all features depend on.
 Output: Working Next.js app with JWT auth, protected routes, and user model.
 </objective>
 
+<execution_context>
+@~/.claude/skills/create-plans/workflows/execute-phase.md
+@~/.claude/skills/create-plans/templates/summary.md
+</execution_context>
+
 <context>
 @.planning/BRIEF.md
 @.planning/ROADMAP.md
@@ -118,19 +164,21 @@ Output: Working Next.js app with JWT auth, protected routes, and user model.
 
 <tasks>
 
-### Task 1: Add User model to database schema
+<task type="auto">
+  <name>Task 1: Add User model to database schema</name>
+  <files>prisma/schema.prisma</files>
+  <action>Add User model with fields: id (cuid), email (unique), passwordHash, createdAt, updatedAt. Add Session relation. Use @db.VarChar(255) for email to prevent index issues.</action>
+  <verify>npx prisma validate passes, npx prisma generate succeeds</verify>
+  <done>Schema valid, types generated, no errors</done>
+</task>
 
-**Files**: `prisma/schema.prisma`
-**Action**: Add User model with fields: id (cuid), email (unique), passwordHash, createdAt, updatedAt. Add Session relation. Use @db.VarChar(255) for email to prevent index issues.
-**Verify**: `npx prisma validate` passes, `npx prisma generate` succeeds
-**Done**: Schema valid, types generated, no errors
-
-### Task 2: Create login API endpoint
-
-**Files**: `src/app/api/auth/login/route.ts`
-**Action**: POST endpoint that accepts {email, password}, validates against User table using bcrypt, returns JWT in httpOnly cookie with 15-min expiry. Use jose library for JWT (not jsonwebtoken - it has CommonJS issues with Next.js).
-**Verify**: `curl -X POST /api/auth/login -d '{"email":"test@test.com","password":"test"}' -H "Content-Type: application/json"` returns 200 with Set-Cookie header
-**Done**: Valid credentials return 200 + cookie, invalid return 401, missing fields return 400
+<task type="auto">
+  <name>Task 2: Create login API endpoint</name>
+  <files>src/app/api/auth/login/route.ts</files>
+  <action>POST endpoint that accepts {email, password}, validates against User table using bcrypt, returns JWT in httpOnly cookie with 15-min expiry. Use jose library for JWT (not jsonwebtoken - it has CommonJS issues with Next.js).</action>
+  <verify>curl -X POST /api/auth/login -d '{"email":"test@test.com","password":"test"}' -H "Content-Type: application/json" returns 200 with Set-Cookie header</verify>
+  <done>Valid credentials return 200 + cookie, invalid return 401, missing fields return 400</done>
+</task>
 
 </tasks>
 
@@ -150,7 +198,7 @@ Before declaring phase complete:
 </success_criteria>
 
 <output>
-After completion, create `.planning/phases/01-foundation/SUMMARY.md`
+After completion, create `.planning/phases/01-foundation/01-01-SUMMARY.md`
 </output>
 ```
 </good_examples>

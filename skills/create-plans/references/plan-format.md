@@ -33,11 +33,20 @@ Output: [...]
 </context>
 
 <tasks>
-### Task N: [Name]
-**Files**: [paths]
-**Action**: [what to do, what to avoid and WHY]
-**Verify**: [command/check]
-**Done**: [criteria]
+<task type="auto">
+  <name>Task N: [Name]</name>
+  <files>[paths]</files>
+  <action>[what to do, what to avoid and WHY]</action>
+  <verify>[command/check]</verify>
+  <done>[criteria]</done>
+</task>
+
+<task type="checkpoint:human-action" gate="blocking">
+  <action>[what human must do]</action>
+  <instructions>[numbered steps]</instructions>
+  <verification>[what Claude can check afterward]</verification>
+  <resume-signal>[how to continue]</resume-signal>
+</task>
 </tasks>
 
 <verification>
@@ -99,6 +108,122 @@ Must be executable - a command, a test, an observable behavior.
 Should be testable without subjective judgment.
 </field>
 </task_anatomy>
+
+<task_types>
+Tasks have a `type` attribute that determines how they execute:
+
+<type name="auto">
+**Default task type** - Claude executes autonomously.
+
+**Structure:**
+```xml
+<task type="auto">
+  <name>Task 3: Create login endpoint with JWT</name>
+  <files>src/app/api/auth/login/route.ts</files>
+  <action>POST endpoint accepting {email, password}. Query User by email, compare password with bcrypt. On match, create JWT with jose library, set as httpOnly cookie (15-min expiry). Return 200. On mismatch, return 401.</action>
+  <verify>curl -X POST localhost:3000/api/auth/login returns 200 with Set-Cookie header</verify>
+  <done>Valid credentials → 200 + cookie. Invalid → 401.</done>
+</task>
+```
+
+Use for: Everything Claude can do independently (code, tests, builds, file operations).
+</type>
+
+<type name="checkpoint:human-action">
+**Human must perform external action** - Claude cannot access external resources.
+
+**Structure:**
+```xml
+<task type="checkpoint:human-action" gate="blocking">
+  <action>Create Upstash Redis database</action>
+  <instructions>
+    1. Visit console.upstash.com
+    2. Click "Create Database" → Redis
+    3. Name: myapp-prod-cache
+    4. Region: US-East-1
+    5. Copy UPSTASH_REDIS_REST_URL from dashboard
+    6. Add to .env: UPSTASH_REDIS_REST_URL=https://...
+  </instructions>
+  <verification>Check .env file contains UPSTASH_REDIS_REST_URL</verification>
+  <resume-signal>Type "done" when complete</resume-signal>
+</task>
+```
+
+Use for: Creating cloud resources, generating API keys, configuring external services, manual deployments.
+
+**Execution:** Claude stops, presents instructions, waits for user confirmation, verifies if possible, then resumes.
+</type>
+
+<type name="checkpoint:human-verify">
+**Human must verify Claude's work** - Visual checks, UX testing.
+
+**Structure:**
+```xml
+<task type="checkpoint:human-verify" gate="blocking">
+  <what-built>Responsive dashboard layout</what-built>
+  <how-to-verify>
+    1. Run: npm run dev
+    2. Visit: http://localhost:3000/dashboard
+    3. Desktop (>1024px): Verify sidebar left, content right
+    4. Tablet (768px): Verify sidebar collapses to hamburger
+    5. Mobile (375px): Verify single column, bottom nav
+    6. Check: No layout shift, no horizontal scroll
+  </how-to-verify>
+  <resume-signal>Type "approved" or describe issues</resume-signal>
+</task>
+```
+
+Use for: UI/UX verification, visual design checks, animation smoothness, accessibility testing.
+
+**Execution:** Claude builds the feature, stops, provides testing instructions, waits for approval/feedback.
+</type>
+
+<type name="checkpoint:decision">
+**Human must make implementation choice** - Direction-setting decisions.
+
+**Structure:**
+```xml
+<task type="checkpoint:decision" gate="blocking">
+  <decision>Select authentication provider</decision>
+  <context>We need user authentication. Three approaches with different tradeoffs:</context>
+  <options>
+    <option id="supabase">
+      <name>Supabase Auth</name>
+      <pros>Built-in with Supabase, generous free tier</pros>
+      <cons>Less customizable UI, tied to ecosystem</cons>
+    </option>
+    <option id="clerk">
+      <name>Clerk</name>
+      <pros>Beautiful pre-built UI, best DX</pros>
+      <cons>Paid after 10k MAU</cons>
+    </option>
+    <option id="nextauth">
+      <name>NextAuth.js</name>
+      <pros>Free, self-hosted, maximum control</pros>
+      <cons>More setup, you manage security</cons>
+    </option>
+  </options>
+  <resume-signal>Select: supabase, clerk, or nextauth</resume-signal>
+</task>
+```
+
+Use for: Technology selection, architecture decisions, design choices, feature prioritization.
+
+**Execution:** Claude presents options with balanced pros/cons, waits for decision, proceeds with chosen direction.
+</type>
+
+**When to use checkpoints:**
+- External resource creation → `checkpoint:human-action`
+- Visual/UX verification → `checkpoint:human-verify`
+- Implementation direction choice → `checkpoint:decision`
+
+**When NOT to use checkpoints:**
+- Things Claude can verify programmatically → `type="auto"` with verify command
+- File operations → `type="auto"`
+- Tests, builds, type checking → `type="auto"`
+
+See `references/checkpoints.md` for comprehensive checkpoint guidance.
+</task_types>
 
 <context_references>
 Use @file references to load context for the prompt:
@@ -166,23 +291,28 @@ After completion, create `.planning/phases/XX-name/SUMMARY.md`:
 
 <specificity_levels>
 <too_vague>
-```markdown
-### Task 1: Add authentication
-**Action**: Implement auth
-**Done**: Users can authenticate
+```xml
+<task type="auto">
+  <name>Task 1: Add authentication</name>
+  <files>???</files>
+  <action>Implement auth</action>
+  <verify>???</verify>
+  <done>Users can authenticate</done>
+</task>
 ```
 
 Claude: "How? What type? What library? Where?"
 </too_vague>
 
 <just_right>
-```markdown
-### Task 1: Create login endpoint with JWT
-
-**Files**: `src/app/api/auth/login/route.ts`
-**Action**: POST endpoint accepting {email, password}. Query User by email, compare password with bcrypt. On match, create JWT with jose library, set as httpOnly cookie (15-min expiry). Return 200. On mismatch, return 401. Use jose instead of jsonwebtoken (CommonJS issues with Edge).
-**Verify**: `curl -X POST localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"email":"test@test.com","password":"test123"}'` returns 200 with Set-Cookie header containing JWT.
-**Done**: Valid credentials → 200 + cookie. Invalid → 401. Missing fields → 400.
+```xml
+<task type="auto">
+  <name>Task 1: Create login endpoint with JWT</name>
+  <files>src/app/api/auth/login/route.ts</files>
+  <action>POST endpoint accepting {email, password}. Query User by email, compare password with bcrypt. On match, create JWT with jose library, set as httpOnly cookie (15-min expiry). Return 200. On mismatch, return 401. Use jose instead of jsonwebtoken (CommonJS issues with Edge).</action>
+  <verify>curl -X POST localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"email":"test@test.com","password":"test123"}' returns 200 with Set-Cookie header containing JWT</verify>
+  <done>Valid credentials → 200 + cookie. Invalid → 401. Missing fields → 400.</done>
+</task>
 ```
 
 Claude can implement this immediately.
@@ -224,10 +354,12 @@ Claude doesn't know your standards. Be explicit.
 <sizing_tasks>
 Good task size: 15-60 minutes of Claude work.
 
-**Too small**: "Add import statement for bcrypt"
-**Just right**: "Create login endpoint with JWT validation"
-**Too big**: "Implement full authentication system"
+**Too small**: "Add import statement for bcrypt" (combine with related task)
+**Just right**: "Create login endpoint with JWT validation" (focused, specific)
+**Too big**: "Implement full authentication system" (split into multiple plans)
 
 If a task takes multiple sessions, break it down.
 If a task is trivial, combine with related tasks.
+
+**Note on scope:** If a phase has >7 tasks or spans multiple subsystems, split into multiple plans using the naming convention `{phase}-{plan}-PLAN.md`. See `references/scope-estimation.md` for guidance.
 </sizing_tasks>

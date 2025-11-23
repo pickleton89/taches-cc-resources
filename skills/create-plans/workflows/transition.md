@@ -3,7 +3,8 @@
 <required_reading>
 **Read these files NOW:**
 1. `.planning/ROADMAP.md`
-2. Current phase's `PLAN.md`
+2. Current phase's plan files (`*-PLAN.md`)
+3. Current phase's summary files (`*-SUMMARY.md`)
 </required_reading>
 
 <purpose>
@@ -16,42 +17,76 @@ where progress tracking happens - implicit via forward motion.
 <process>
 
 <step name="verify_completion">
-Check current phase status:
+Check current phase has all plan summaries:
 
 ```bash
-cat .planning/phases/XX-current/PLAN.md
+ls .planning/phases/XX-current/*-PLAN.md 2>/dev/null | sort
+ls .planning/phases/XX-current/*-SUMMARY.md 2>/dev/null | sort
 ```
 
-Ask: "Phase [X] tasks appear complete. Ready to mark it done and move to Phase [X+1]?"
+**Verification logic:**
+- Count PLAN files
+- Count SUMMARY files
+- If counts match: all plans complete
+- If counts don't match: incomplete
 
-If tasks incomplete, clarify:
-- Continue current phase?
-- Mark complete anyway (user judgment)?
-- Review what's left?
+**If all plans complete:**
+Ask: "Phase [X] complete - all [Y] plans finished. Ready to mark done and move to Phase [X+1]?"
+
+**If plans incomplete:**
+Present:
+```
+Phase [X] has incomplete plans:
+- {phase}-01-SUMMARY.md ✓ Complete
+- {phase}-02-SUMMARY.md ✗ Missing
+- {phase}-03-SUMMARY.md ✗ Missing
+
+Options:
+1. Continue current phase (execute remaining plans)
+2. Mark complete anyway (skip remaining plans)
+3. Review what's left
+```
+
+Wait for user decision.
 </step>
 
 <step name="cleanup_handoff">
-Check for lingering handoff:
+Check for lingering handoffs:
 
 ```bash
-ls .planning/phases/XX-current/.continue-here.md 2>/dev/null
+ls .planning/phases/XX-current/.continue-here*.md 2>/dev/null
 ```
 
-If found, delete it - phase is complete, handoff is stale.
+If found, delete them - phase is complete, handoffs are stale.
+
+Pattern matches:
+- `.continue-here.md` (legacy)
+- `.continue-here-01-02.md` (plan-specific)
 </step>
 
 <step name="update_roadmap">
 Update `.planning/ROADMAP.md`:
 - Mark current phase: `[x] Complete`
 - Add completion date
+- Update plan count to final (e.g., "3/3 plans complete")
+- Update Progress table
 - Keep next phase as `[ ] Not started`
 
+**Example:**
 ```markdown
 ## Phases
 
 - [x] Phase 1: Foundation (completed 2025-01-15)
 - [ ] Phase 2: Authentication ← Next
 - [ ] Phase 3: Core Features
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Foundation | 3/3 | Complete | 2025-01-15 |
+| 2. Authentication | 0/2 | Not started | - |
+| 3. Core Features | 0/1 | Not started | - |
 ```
 </step>
 
@@ -89,23 +124,28 @@ No separate "update progress" step. Forward motion IS progress.
 If user wants to move on but phase isn't fully complete:
 
 ```
-Phase [X] has incomplete tasks:
-- Task 5: [name]
-- Task 6: [name]
+Phase [X] has incomplete plans:
+- {phase}-02-PLAN.md (not executed)
+- {phase}-03-PLAN.md (not executed)
 
 Options:
-1. Mark complete anyway (tasks weren't needed)
-2. Defer tasks to later phase
+1. Mark complete anyway (plans weren't needed)
+2. Defer work to later phase
 3. Stay and finish current phase
 ```
 
-Respect user judgment - they know if tasks matter.
+Respect user judgment - they know if work matters.
+
+**If marking complete with incomplete plans:**
+- Update ROADMAP: "2/3 plans complete" (not "3/3")
+- Note in transition message which plans were skipped
 </partial_completion>
 
 <success_criteria>
 Transition is complete when:
-- [ ] Current phase verified complete (or user decided to move on)
-- [ ] Any stale handoff deleted
-- [ ] ROADMAP.md updated with completion
+- [ ] Current phase plan summaries verified (all exist or user chose to skip)
+- [ ] Any stale handoffs deleted
+- [ ] ROADMAP.md updated with completion status and plan count
+- [ ] Progress table updated
 - [ ] User knows next steps
 </success_criteria>

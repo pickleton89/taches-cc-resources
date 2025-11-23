@@ -1,21 +1,25 @@
 # Workflow: Create Exhaustive Domain Expertise Skill
 
 <objective>
-Build a comprehensive knowledge base that other skills (like create-plans) can load to make domain-appropriate decisions. This is NOT a skill that executes tasks—it's a complete domain reference that gets consumed by other skills.
+Build a comprehensive execution skill that does real work in a specific domain. Domain expertise skills are full-featured build skills with exhaustive domain knowledge in references, complete workflows for the full lifecycle (build → debug → optimize → ship), and can be both invoked directly by users AND loaded by other skills (like create-plans) for domain knowledge.
 </objective>
 
 <critical_distinction>
-**Regular skill:** "Know enough to do a specific task"
-**Domain expertise skill:** "Know EVERYTHING a professional practitioner knows"
+**Regular skill:** "Do one specific task"
+**Domain expertise skill:** "Do EVERYTHING in this domain, with complete practitioner knowledge"
 
 Examples:
-- `build/python-games` - Complete Python game development knowledge
-- `build/rust-systems` - Exhaustive Rust systems programming expertise
-- `build/machine-learning` - Comprehensive ML/AI domain knowledge
+- `expertise/macos-apps` - Build macOS apps from scratch through shipping
+- `expertise/python-games` - Build complete Python games with full game dev lifecycle
+- `expertise/rust-systems` - Build Rust systems programs with exhaustive systems knowledge
+- `expertise/web-scraping` - Build scrapers, handle all edge cases, deploy at scale
 
-When create-plans loads `build/python-games/` to plan a game project, it needs ALL libraries, ALL patterns, ALL lifecycle stages, ALL platform considerations, ALL distribution strategies.
-
-If incomplete, roadmaps miss critical phases, wrong architectures get chosen, phases planned in wrong order.
+Domain expertise skills:
+- ✅ Execute tasks (build, debug, optimize, ship)
+- ✅ Have comprehensive domain knowledge in references
+- ✅ Are invoked directly by users ("build a macOS app")
+- ✅ Can be loaded by other skills (create-plans reads references for planning)
+- ✅ Cover the FULL lifecycle, not just getting started
 </critical_distinction>
 
 <required_reading>
@@ -31,16 +35,16 @@ If incomplete, roadmaps miss critical phases, wrong architectures get chosen, ph
 Ask user what domain expertise to build:
 
 **Example domains:**
+- macOS/iOS app development
 - Python game development
 - Rust systems programming
 - Machine learning / AI
-- Mobile game development (Unity/Unreal)
 - Web scraping and automation
 - Data engineering pipelines
-- Embedded systems
-- Computer graphics / shaders
 - Audio processing / DSP
-- Blockchain / smart contracts
+- 3D graphics / shaders
+- Unity/Unreal game development
+- Embedded systems
 
 Get specific: "Python games" or "Python games with Pygame specifically"?
 
@@ -50,8 +54,11 @@ Explain:
 ```
 Domain expertise skills go in: ~/.claude/skills/expertise/{domain-name}/
 
-These are loaded BY other skills (like create-plans) to provide
-domain-specific knowledge during planning and execution.
+These are comprehensive BUILD skills that:
+- Execute tasks (build, debug, optimize, ship)
+- Contain exhaustive domain knowledge
+- Can be invoked directly by users
+- Can be loaded by other skills for domain knowledge
 
 Name suggestion: {suggested-name}
 Location: ~/.claude/skills/expertise/{suggested-name}/
@@ -59,7 +66,26 @@ Location: ~/.claude/skills/expertise/{suggested-name}/
 
 Confirm or adjust name.
 
-## Step 3: Exhaustive Research Phase
+## Step 3: Identify Workflows
+
+Domain expertise skills cover the FULL lifecycle. Identify what workflows are needed.
+
+**Common workflows for most domains:**
+1. **build-new-{thing}.md** - Create from scratch
+2. **add-feature.md** - Extend existing {thing}
+3. **debug-{thing}.md** - Find and fix bugs
+4. **write-tests.md** - Test for correctness
+5. **optimize-performance.md** - Profile and speed up
+6. **ship-{thing}.md** - Deploy/distribute
+
+**Domain-specific workflows:**
+- Games: `implement-game-mechanic.md`, `add-audio.md`, `polish-ui.md`
+- Web apps: `setup-auth.md`, `add-api-endpoint.md`, `setup-database.md`
+- Systems: `optimize-memory.md`, `profile-cpu.md`, `cross-compile.md`
+
+Each workflow = one complete task type that users actually do.
+
+## Step 4: Exhaustive Research Phase
 
 **CRITICAL:** This research must be comprehensive, not superficial.
 
@@ -116,7 +142,7 @@ mcp__context7__get-library-docs: {library-id}
 
 Focus on official docs, not tutorials.
 
-## Step 4: Organize Knowledge Into Domain Areas
+## Step 5: Organize Knowledge Into Domain Areas
 
 Structure references by domain concerns, NOT by arbitrary categories.
 
@@ -141,6 +167,25 @@ references/
 └── anti-patterns.md       # Common mistakes, what NOT to do
 ```
 
+**For macOS app development example:**
+```
+references/
+├── app-architecture.md     # State management, dependency injection
+├── swiftui-patterns.md     # Declarative UI patterns
+├── appkit-integration.md   # Using AppKit with SwiftUI
+├── concurrency-patterns.md # Async/await, actors, structured concurrency
+├── data-persistence.md     # Storage strategies
+├── networking.md           # URLSession, async networking
+├── system-apis.md          # macOS-specific frameworks
+├── testing-tdd.md          # Testing patterns
+├── testing-debugging.md    # Debugging tools and techniques
+├── performance.md          # Profiling, optimization
+├── design-system.md        # Platform conventions
+├── macos-polish.md         # Native feel, accessibility
+├── security-code-signing.md # Signing, notarization
+└── project-scaffolding.md  # CLI-based setup
+```
+
 **For each reference file:**
 - Pure XML structure
 - Decision trees: "If X, use Y. If Z, use A instead."
@@ -150,69 +195,175 @@ references/
 - Platform-specific considerations
 - Current versions and compatibility
 
-## Step 5: Create SKILL.md
+## Step 6: Create SKILL.md
 
-Domain expertise skills use router pattern:
+Domain expertise skills use router pattern with essential principles:
 
 ```yaml
 ---
-name: {domain-name}
-description: Exhaustive {domain} expertise. Comprehensive knowledge of libraries, patterns, architecture, lifecycle, and best practices. Loaded by other skills (create-plans, etc.) to make domain-appropriate decisions.
+name: build-{domain-name}
+description: Build {domain things} from scratch through shipping. Full lifecycle - build, debug, test, optimize, ship. {Any specific constraints like "CLI-only, no IDE"}.
 ---
 
-<domain_coverage>
-## What This Expertise Covers
+<essential_principles>
+## How {This Domain} Works
 
-**Complete coverage of:**
-- All major libraries and frameworks (with when to use each)
-- All architectural patterns and when to apply them
-- Full development lifecycle (setup → dev → test → optimize → ship)
-- Platform-specific considerations
-- Common pitfalls and anti-patterns
-- Current best practices (2024-2025)
-</domain_coverage>
+{Domain-specific principles that ALWAYS apply}
 
-<how_to_use>
-## How Other Skills Use This
+### 1. {First Principle}
+{Critical practice that can't be skipped}
 
-This is a **knowledge base**, not an execution skill.
+### 2. {Second Principle}
+{Another fundamental practice}
 
-**Consumed by:**
-- create-plans: Load references when planning {domain} projects
-- Other build skills: Access domain patterns during implementation
+### 3. {Third Principle}
+{Core workflow pattern}
+</essential_principles>
 
-**Not for:**
-- Direct user invocation (no intake/routing)
-- Task execution (knowledge only)
-</how_to_use>
+<intake>
+**Ask the user:**
+
+What would you like to do?
+1. Build a new {thing}
+2. Debug an existing {thing}
+3. Add a feature
+4. Write/run tests
+5. Optimize performance
+6. Ship/release
+7. Something else
+
+**Then read the matching workflow from `workflows/` and follow it.**
+</intake>
+
+<routing>
+| Response | Workflow |
+|----------|----------|
+| 1, "new", "create", "build", "start" | `workflows/build-new-{thing}.md` |
+| 2, "broken", "fix", "debug", "crash", "bug" | `workflows/debug-{thing}.md` |
+| 3, "add", "feature", "implement", "change" | `workflows/add-feature.md` |
+| 4, "test", "tests", "TDD", "coverage" | `workflows/write-tests.md` |
+| 5, "slow", "optimize", "performance", "fast" | `workflows/optimize-performance.md` |
+| 6, "ship", "release", "deploy", "publish" | `workflows/ship-{thing}.md` |
+| 7, other | Clarify, then select workflow or references |
+</routing>
+
+<verification_loop>
+## After Every Change
+
+{Domain-specific verification steps}
+
+Example for compiled languages:
+```bash
+# 1. Does it build?
+{build command}
+
+# 2. Do tests pass?
+{test command}
+
+# 3. Does it run?
+{run command}
+```
+
+Report to the user:
+- "Build: ✓"
+- "Tests: X pass, Y fail"
+- "Ready for you to check [specific thing]"
+</verification_loop>
 
 <reference_index>
 ## Domain Knowledge
 
 All in `references/`:
 
-**{Category 1}:** file1.md, file2.md
-**{Category 2}:** file3.md, file4.md
-...
+**Architecture:** {list files}
+**{Domain Area}:** {list files}
+**{Domain Area}:** {list files}
+**Development:** {list files}
+**Shipping:** {list files}
 </reference_index>
 
-<verification_criteria>
-## Knowledge Quality Checklist
+<workflows_index>
+## Workflows
 
-- [ ] All major libraries identified with adoption status
-- [ ] Current versions verified (2024-2025)
-- [ ] Decision guidance provided (when to use X vs Y)
-- [ ] Complete lifecycle covered (not just "getting started")
-- [ ] Platform-specific concerns addressed
-- [ ] Anti-patterns documented
-- [ ] Real-world patterns included
-- [ ] No outdated/deprecated content
-</verification_criteria>
+All in `workflows/`:
+
+| File | Purpose |
+|------|---------|
+| build-new-{thing}.md | Create new {thing} from scratch |
+| debug-{thing}.md | Find and fix bugs |
+| add-feature.md | Add to existing {thing} |
+| write-tests.md | Write and run tests |
+| optimize-performance.md | Profile and speed up |
+| ship-{thing}.md | Deploy/distribute |
+</workflows_index>
 ```
 
-## Step 6: Write Comprehensive References
+## Step 7: Write Workflows
 
-For EACH reference file:
+For EACH workflow identified in Step 3:
+
+### Workflow Template
+
+```markdown
+# Workflow: {Workflow Name}
+
+<required_reading>
+**Read these reference files NOW before {doing the task}:**
+1. references/{relevant-file}.md
+2. references/{another-relevant-file}.md
+3. references/{third-relevant-file}.md
+</required_reading>
+
+<process>
+## Step 1: {First Action}
+
+{What to do}
+
+## Step 2: {Second Action}
+
+{What to do - actual implementation steps}
+
+## Step 3: {Third Action}
+
+{What to do}
+
+## Step 4: Verify
+
+{How to prove it works}
+
+```bash
+{verification commands}
+```
+</process>
+
+<anti_patterns>
+Avoid:
+- {Common mistake 1}
+- {Common mistake 2}
+- {Common mistake 3}
+</anti_patterns>
+
+<success_criteria>
+A well-{completed task}:
+- {Criterion 1}
+- {Criterion 2}
+- {Criterion 3}
+- Builds/runs without errors
+- Tests pass
+- Feels {native/professional/correct}
+</success_criteria>
+```
+
+**Key workflow characteristics:**
+- Starts with required_reading (which references to load)
+- Contains actual implementation steps (not just "read references")
+- Includes verification steps
+- Has success criteria
+- Documents anti-patterns
+
+## Step 8: Write Comprehensive References
+
+For EACH reference file identified in Step 5:
 
 ### Structure Template
 
@@ -231,7 +382,7 @@ Brief introduction to this domain area
 **Current status:** v{version}, actively maintained
 **Learning curve:** [easy/medium/hard]
 
-```python
+```code
 # Example usage
 ```
 </option>
@@ -297,45 +448,27 @@ Most domains need:
 - **architecture.md** - How to structure projects
 - **libraries.md** - Ecosystem overview with comparisons
 - **patterns.md** - Design patterns specific to domain
-- **lifecycle.md** - Setup → dev → test → optimize → ship
 - **testing-debugging.md** - How to verify correctness
 - **performance.md** - Optimization strategies
 - **deployment.md** - How to ship/distribute
 - **anti-patterns.md** - Common mistakes consolidated
 
-## Step 7: Create Workflows (Optional)
-
-Domain expertise skills typically DON'T need workflows (they're knowledge bases).
-
-**Only create workflows if:**
-- Knowledge is complex enough to need structured consumption
-- Different use cases need different subsets of references
-- There's a natural "decision tree" for loading knowledge
-
-Example: A complex domain might have:
-```
-workflows/
-├── plan-new-project.md      # Which refs to load when planning
-├── debug-existing.md         # Which refs help with debugging
-└── optimize-performance.md   # Performance-specific references
-```
-
-Most domain skills skip this—references are self-sufficient.
-
-## Step 8: Validate Completeness
+## Step 9: Validate Completeness
 
 ### Completeness Checklist
 
-Ask: "If create-plans loaded this to plan a {domain} project, would it have ALL the information needed?"
+Ask: "Could a user build a professional {domain thing} from scratch through shipping using just this skill?"
 
 **Must answer YES to:**
 - [ ] All major libraries/frameworks covered?
 - [ ] All architectural approaches documented?
-- [ ] Complete lifecycle addressed (not just "hello world")?
+- [ ] Complete lifecycle addressed (build → debug → test → optimize → ship)?
 - [ ] Platform-specific considerations included?
 - [ ] "When to use X vs Y" guidance provided?
 - [ ] Common pitfalls documented?
 - [ ] Current as of 2024-2025?
+- [ ] Workflows actually execute tasks (not just reference knowledge)?
+- [ ] Each workflow specifies which references to read?
 
 **Specific gaps to check:**
 - [ ] Testing strategy covered?
@@ -344,50 +477,70 @@ Ask: "If create-plans loaded this to plan a {domain} project, would it have ALL 
 - [ ] Performance optimization addressed?
 - [ ] Security considerations (if applicable)?
 - [ ] Asset/resource management (if applicable)?
-- [ ] Networking/multiplayer (if applicable)?
+- [ ] Networking (if applicable)?
 
-### Verification Method
+### Dual-Purpose Test
 
-Run spot checks:
-- Search "is {library} still maintained 2024"
-- Check GitHub last commit dates for major libraries
-- Verify version numbers in examples are current
-- Confirm APIs haven't changed significantly
+Test both use cases:
 
-## Step 9: Create Directory and Files
+**Direct invocation:** "Can a user invoke this skill and build something?"
+- Intake routes to appropriate workflow
+- Workflow loads relevant references
+- Workflow provides implementation steps
+- Success criteria are clear
+
+**Knowledge reference:** "Can create-plans load references to plan a project?"
+- References contain decision guidance
+- All options compared
+- Complete lifecycle covered
+- Architecture patterns documented
+
+## Step 10: Create Directory and Files
 
 ```bash
 # Create structure
 mkdir -p ~/.claude/skills/expertise/{domain-name}
+mkdir -p ~/.claude/skills/expertise/{domain-name}/workflows
 mkdir -p ~/.claude/skills/expertise/{domain-name}/references
 
 # Write SKILL.md
+# Write all workflow files
 # Write all reference files
 
 # Verify structure
 ls -R ~/.claude/skills/expertise/{domain-name}
 ```
 
-## Step 10: Document in create-plans
+## Step 11: Document in create-plans
 
 Update `~/.claude/skills/create-plans/SKILL.md` to reference this new domain:
 
 Add to the domain inference table:
 ```markdown
-| "{keyword}", "{domain term}" | build/{domain-name} |
+| "{keyword}", "{domain term}" | expertise/{domain-name} |
 ```
 
 So create-plans can auto-detect and offer to load it.
 
-## Step 11: Final Quality Check
+## Step 12: Final Quality Check
 
 Review entire skill:
 
 **SKILL.md:**
-- [ ] Name matches directory
-- [ ] Description explains it's a knowledge base for other skills
-- [ ] Reference index is complete and organized
-- [ ] Verification criteria present
+- [ ] Name matches directory (build-{domain-name})
+- [ ] Description explains it builds things from scratch through shipping
+- [ ] Essential principles inline (always loaded)
+- [ ] Intake asks what user wants to do
+- [ ] Routing maps to workflows
+- [ ] Reference index complete and organized
+- [ ] Workflows index complete
+
+**Workflows:**
+- [ ] Each workflow starts with required_reading
+- [ ] Each workflow has actual implementation steps
+- [ ] Each workflow has verification steps
+- [ ] Each workflow has success criteria
+- [ ] Workflows cover full lifecycle (build, debug, test, optimize, ship)
 
 **References:**
 - [ ] Pure XML structure (no markdown headings)
@@ -401,7 +554,9 @@ Review entire skill:
 - [ ] A professional practitioner would find this comprehensive
 - [ ] No major libraries/patterns missing
 - [ ] Full lifecycle covered
-- [ ] Passes the "plan a complex project" test
+- [ ] Passes the "build from scratch through shipping" test
+- [ ] Can be invoked directly by users
+- [ ] Can be loaded by create-plans for knowledge
 
 </process>
 
@@ -411,14 +566,17 @@ Domain expertise skill is complete when:
 - [ ] Comprehensive research completed (5+ web searches)
 - [ ] All sources verified for currency (2024-2025)
 - [ ] Knowledge organized by domain areas (not arbitrary)
+- [ ] Essential principles in SKILL.md (always loaded)
+- [ ] Intake routes to appropriate workflows
+- [ ] Each workflow has required_reading + implementation steps + verification
 - [ ] Each reference has decision trees and comparisons
-- [ ] Anti-patterns documented
-- [ ] Full lifecycle covered (not just getting started)
+- [ ] Anti-patterns documented throughout
+- [ ] Full lifecycle covered (build → debug → test → optimize → ship)
 - [ ] Platform-specific considerations included
-- [ ] SKILL.md explains it's a knowledge base for other skills
 - [ ] Located in ~/.claude/skills/expertise/{domain-name}/
 - [ ] Referenced in create-plans domain inference table
-- [ ] Passes completeness test: "Could create-plans build a comprehensive roadmap with just this knowledge?"
+- [ ] Passes dual-purpose test: Can be invoked directly AND loaded for knowledge
+- [ ] User can build something professional from scratch through shipping
 </success_criteria>
 
 <anti_patterns>
@@ -428,15 +586,20 @@ Domain expertise skill is complete when:
 - Skip the "when NOT to use" guidance
 - Forget to check if libraries are still maintained
 - Organize by document type instead of domain concerns
-- Create a skill that executes tasks (this is knowledge only)
+- Make it knowledge-only with no execution workflows
+- Skip verification steps in workflows
 - Include outdated content from old blog posts
 - Skip decision trees and comparisons
+- Create workflows that just say "read the references"
 
 **DO:**
 - Verify everything is current
-- Include complete lifecycle
+- Include complete lifecycle (build → ship)
 - Provide decision guidance
 - Document anti-patterns
-- Structure for consumption by other skills
+- Make workflows execute real tasks
+- Start workflows with required_reading
+- Include verification in every workflow
 - Make it exhaustive, not minimal
+- Test both direct invocation and knowledge reference use cases
 </anti_patterns>
