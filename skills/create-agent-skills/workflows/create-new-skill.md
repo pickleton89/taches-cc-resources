@@ -6,6 +6,7 @@
 2. references/skill-structure.md
 3. references/core-principles.md
 4. references/use-xml-tags.md
+5. references/analyzing-user-materials.md
 </required_reading>
 
 <process>
@@ -40,7 +41,49 @@ Options:
 2. **Ask more questions** - There are more details to clarify
 3. **Let me add details** - I want to provide additional context
 
-## Step 2: Research Trigger (If External API)
+## Step 2: Gather Reference Materials
+
+**Ask the user:**
+```
+Do you have any reference materials I should review before building this skill?
+
+Examples:
+- Documentation files (README, API docs, guides)
+- Code examples or existing implementations
+- Other skills to use as patterns
+- API specs or schemas
+- Screenshots or diagrams
+
+Provide file paths, paste content, or say "none" to proceed without.
+```
+
+**If user provides materials:**
+
+1. **Read each file** using the Read tool
+2. **Analyze for:**
+   - Terminology and domain concepts
+   - Patterns and conventions
+   - Constraints and requirements
+   - Workflow sequences
+   - Success criteria hints
+
+3. **Summarize findings:**
+   ```
+   I've reviewed your materials. Key insights I'll incorporate:
+   - [Terminology]: [terms discovered]
+   - [Patterns]: [patterns to follow]
+   - [Constraints]: [limitations to respect]
+   - [Gaps]: [what I'll need to research separately]
+   ```
+
+4. **Verify currency** - Ask if materials are up-to-date if dates seem old
+
+**If user says "none":**
+→ Proceed to Step 3
+
+**Reference:** See `references/analyzing-user-materials.md` for detailed analysis methodology.
+
+## Step 3: Research Trigger (If External API/Service)
 
 **When external service detected**, ask using AskUserQuestion:
 "This involves [service name] API. Would you like me to research current endpoints and patterns before building?"
@@ -55,7 +98,7 @@ If research requested:
 - Focus on 2024-2025 sources
 - Store findings for use in content generation
 
-## Step 3: Decide Structure
+## Step 4: Decide Structure
 
 **Simple skill (single workflow, <200 lines):**
 → Single SKILL.md file with all content
@@ -87,7 +130,7 @@ Factors favoring router pattern:
 
 See references/recommended-structure.md for templates.
 
-## Step 4: Create Directory
+## Step 5: Create Directory
 
 ```bash
 mkdir -p ~/.claude/skills/{skill-name}
@@ -99,7 +142,7 @@ mkdir -p ~/.claude/skills/{skill-name}/templates  # for output structures
 mkdir -p ~/.claude/skills/{skill-name}/scripts    # for reusable code
 ```
 
-## Step 5: Write SKILL.md
+## Step 6: Write SKILL.md
 
 **Simple skill:** Write complete skill file with:
 - YAML frontmatter (name, description)
@@ -115,7 +158,7 @@ mkdir -p ~/.claude/skills/{skill-name}/scripts    # for reusable code
 - `<routing>` (maps answers to workflows)
 - `<reference_index>` and `<workflows_index>`
 
-## Step 6: Write Workflows (if complex)
+## Step 7: Write Workflows (if complex)
 
 For each workflow:
 ```xml
@@ -132,14 +175,14 @@ How to know this workflow is done
 </success_criteria>
 ```
 
-## Step 7: Write References (if needed)
+## Step 8: Write References (if needed)
 
 Domain knowledge that:
 - Multiple workflows might need
 - Doesn't change based on workflow
 - Contains patterns, examples, technical details
 
-## Step 8: Validate Structure
+## Step 9: Validate Structure
 
 Check:
 - [ ] YAML frontmatter valid
@@ -151,7 +194,7 @@ Check:
 - [ ] SKILL.md under 500 lines
 - [ ] XML tags properly closed
 
-## Step 9: Create Slash Command
+## Step 10: Create Slash Command
 
 ```bash
 cat > ~/.claude/commands/{skill-name}.md << 'EOF'
@@ -165,7 +208,7 @@ Invoke the {skill-name} skill for: $ARGUMENTS
 EOF
 ```
 
-## Step 10: Test
+## Step 11: Test
 
 Invoke the skill and observe:
 - Does it ask the right intake question?
@@ -179,6 +222,7 @@ Iterate based on real usage, not assumptions.
 <success_criteria>
 Skill is complete when:
 - [ ] Requirements gathered with appropriate questions
+- [ ] User reference materials reviewed (if provided)
 - [ ] API research done if external service involved
 - [ ] Directory structure correct
 - [ ] SKILL.md has valid frontmatter

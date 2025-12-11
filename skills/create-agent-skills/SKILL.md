@@ -61,6 +61,7 @@ What would you like to do?
 2. Audit/modify existing skill
 3. Add component (workflow/reference/template/script)
 4. Get guidance
+5. Review reference materials (I have docs/examples to share)
 
 **Wait for response before proceeding.**
 </intake>
@@ -72,6 +73,7 @@ What would you like to do?
 | 2, "audit", "modify", "existing" | Ask: "Path to skill?" | Route to appropriate workflow |
 | 3, "add", "component" | Ask: "Add what? (workflow/reference/template/script)" | workflows/add-{type}.md |
 | 4, "guidance", "help" | General guidance | workflows/get-guidance.md |
+| 5, "review", "materials", "docs", "examples" | Ask for file paths/content | Read references/analyzing-user-materials.md, then proceed |
 
 **Progressive disclosure for option 1 (create):**
 - If user selects "Task-execution skill" → workflows/create-new-skill.md
@@ -83,13 +85,20 @@ What would you like to do?
 - If user specifies template → workflows/add-template.md
 - If user specifies script → workflows/add-script.md
 
+**Progressive disclosure for option 5 (review materials):**
+- Ask: "What materials would you like me to review? (file paths, URLs, or paste content)"
+- Read and analyze each material per references/analyzing-user-materials.md
+- Summarize findings and ask: "Now what would you like to do with these insights?"
+- Route to appropriate workflow (usually create-new-skill.md or create-domain-expertise-skill.md)
+
 **Intent-based routing (if user provides clear intent without selecting menu):**
-- "audit this skill", "check skill", "review" → workflows/audit-skill.md
+- "audit this skill", "check skill", "review skill" → workflows/audit-skill.md
 - "verify content", "check if current" → workflows/verify-skill.md
 - "create domain expertise", "exhaustive knowledge base" → workflows/create-domain-expertise-skill.md
 - "create skill for X", "build new skill" → workflows/create-new-skill.md
 - "add workflow", "add reference", etc. → workflows/add-{type}.md
 - "upgrade to router" → workflows/upgrade-to-router.md
+- "I have docs", "review these files", "look at this example" → Read references/analyzing-user-materials.md first
 
 **After reading the workflow, follow it exactly.**
 </routing>
@@ -145,6 +154,7 @@ All in `references/`:
 **Patterns:** common-patterns.md, workflows-and-validation.md
 **Assets:** using-templates.md, using-scripts.md
 **Advanced:** executable-code.md, api-security.md, iteration-and-testing.md
+**User Input:** analyzing-user-materials.md
 </reference_index>
 
 <workflows_index>
